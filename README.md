@@ -11,3 +11,26 @@ The Distributed Drone Coordination System simulates multiple ground stations tha
 * Leader Election: Democratic selection of cluster coordinators
 
 * Dynamic Handoff: Seamless transfer of drones between stations
+
+## System Architecture
+<img width="1314" height="1266" alt="dsmt_arch" src="https://github.com/user-attachments/assets/aff6c052-320e-4e73-9622-f0fc072970e4" />
+
+## Key Features
+### Distributed Operations
+* Multiple ground stations running on different machines
+* Real-time message passing between stations
+* Automatic leader election on node failure
+* State replication across cluster
+  
+### Drone Management
+* Launch drones from any ground station
+* Set waypoints via map interface
+* Automatic handoff when crossing regional boundaries
+* Real-time telemetry (position, battery, status)
+  
+### Interactive Frontend
+* Live map with drone positions and trails
+* Click-to-command waypoint setting
+ Ground station status panels
+
+
