@@ -13,7 +13,7 @@ The Distributed Drone Coordination System simulates multiple ground stations tha
 * Dynamic Handoff: Seamless transfer of drones between stations
 
 ## System Architecture
-<img width="1314" height="1266" alt="dsmt_arch" src="https://github.com/user-attachments/assets/aff6c052-320e-4e73-9622-f0fc072970e4" />
+<img width="1314" height="1266" alt="dsmt drawio" src="https://github.com/user-attachments/assets/ab63064b-2844-4aa0-be27-8505176c9cb2" />
 
 ## Key Features
 ### Distributed Operations
