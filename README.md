@@ -3,7 +3,11 @@ The Distributed Drone Coordination System simulates multiple ground stations tha
 
 
 ## Core Concepts
-• Actor Model: Drones and ground stations as independent concurrent entities
-• Fault Tolerance: Automatic recovery from node failures
-• Leader Election: Democratic selection of cluster coordinators
-• Dynamic Handoff: Seamless transfer of drones between stations
+
+* Actor Model: Drones and ground stations as independent concurrent entities
+
+* Fault Tolerance: Automatic recovery from node failures
+
+* Leader Election: Democratic selection of cluster coordinators
+
+* Dynamic Handoff: Seamless transfer of drones between stations
