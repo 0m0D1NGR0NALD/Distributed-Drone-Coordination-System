@@ -20,7 +20,6 @@ The Distributed Drone Coordination System simulates multiple ground stations tha
 * Multiple ground stations running on different machines
 * Real-time message passing between stations
 * Automatic leader election on node failure
-* State replication across cluster
   
 ### Drone Management
 * Launch drones from any ground station
