@@ -33,4 +33,4 @@ The Distributed Drone Coordination System simulates multiple ground stations tha
  Ground station status panels
 
 ### Usage
-Follow the instructions in 'guide.txt'
+Follow the instructions in *guide.txt*.
