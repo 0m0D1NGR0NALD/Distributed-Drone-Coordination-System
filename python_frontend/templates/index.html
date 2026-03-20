@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!-- python_frontend/templates/index.html -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributed Drone Coordination System</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- SocketIO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Map Container -->
+        <div class="map-container">
+            <div id="map"></div>
+            
+            <!-- Map Legend (updated) -->
+            <div class="map-legend">
+                <h4>Legend</h4>
+                <div class="legend-item">
+                    <div class="legend-color" style="background:#e94560;"></div>
+                    <span>Kampala Drone (GS1)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background:#0f3460;"></div>
+                    <span>Rome Drone (GS2)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background:#ffc107;"></div>
+                    <span>Ground Stations</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="panel-header">
+                <h2>Drone Control</h2>
+                <div class="status">
+                    <span id="connection-status" class="connection-status disconnected">Disconnected</span>
+                </div>
+                <div id="last-update" style="font-size: 0.8rem; color: #aaa; margin-top: 5px;"></div>
+            </div>
+            
+            <!-- Ground Stations (populated by JS) -->
+            <div id="stations-container"></div>
+            
+            <!-- Command Panel -->
+            <div class="command-panel">
+                <h3>Send Command</h3>
+                
+                <div class="form-group">
+                    <label for="station-select">Ground Station</label>
+                    <select id="station-select">
+                        <option value="gs1">Kampala (GS1)</option>
+                        <option value="gs2">Rome (GS2)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="drone-id">Drone ID</label>
+                    <input type="number" id="drone-id" value="101" min="1">
+                </div>
+                
+                <button class="btn primary" onclick="launchDrone()">Launch Drone</button>
+                
+                <div class="form-group">
+                    <label>Click on map to set waypoint</label>
+                    <div id="click-coords" style="background: #0f3460; padding: 10px; border-radius: 5px; text-align: center;">
+                        Waiting for click...
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="target-station">Transfer to</label>
+                    <select id="target-station">
+                        <option value="gs1">Kampala (GS1)</option>
+                        <option value="gs2">Rome (GS2)</option>
+                    </select>
+                </div>
+                
+                <button class="btn" onclick="transferDrone()">Transfer Drone</button>
+                <button class="btn" onclick="refreshStatus()">Refresh Status</button>
+            </div>
+            
+            <!-- Stats -->
+            <div class="stats-panel">
+                <h3>Statistics</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Active Drones:</span>
+                    <span class="stat-value" id="stat-drones">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Ground Stations:</span>
+                    <span class="stat-value" id="stat-stations">2</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+</body>
+</html>
