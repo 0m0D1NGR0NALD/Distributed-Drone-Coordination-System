@@ -1,152 +1,341 @@
-> cd ./"Distributed-Drone-Coordination-System"/erlang/src
-> cd ./"Distributed-Drone-Coordination-System"/python_frontend
+================================================================================
+               DISTRIBUTED DRONE COORDINATION SYSTEM - RUN GUIDE
+================================================================================
 
-% Create split terminals to run the independent nodes
-**********************************
-Terminal 0 - Drone Port:
-**********************************
+This guide walks you through launching the complete system, from starting the
+Erlang nodes to running the Python frontend and interacting with drones.
+
+================================================================================
+1. INITIAL SETUP
+================================================================================
+
+Navigate to the project directories:
+
+> cd "./Distributed-Drone-Coordination-System"/erlang/src
+> cd "./Distributed-Drone-Coordination-System"/python_frontend
+
+================================================================================
+2. START THE ERLANG BACKEND
+================================================================================
+
+You will need four separate terminals: one for the port program, two for the
+ground stations, and one for the Python frontend.
+
+--------------------------------------------------------------------------------
+TERMINAL 0 – PORT PROGRAM (bridge to Python)
+--------------------------------------------------------------------------------
+This process listens for commands from Python and broadcasts drone telemetry.
+
 > cd src
 > ./start_ground_station.sh port
 
-Erlang shell:
-*************
-% Compile all modules
-*>
+In the Erlang shell:
+
+% Compile all required modules
 c(node_communicator).
 c(drone).
 c(leader_election).
 c(ground_station).
 c(drone_port_broadcast).
-*>   
 
-> drone_port_broadcast:start_link().
-> global:re_register_name(drone_port_broadcast, whereis(drone_port_broadcast)).
+% Start the port listener (background process)
+drone_port_broadcast:start_link().
 
-**********************************
-Terminal 1 - First Ground Station:
-**********************************
+% Register the port globally so ground stations can find it
+global:re_register_name(drone_port_broadcast, whereis(drone_port_broadcast)).
+
+% Verify it's registered
+global:whereis_name(drone_port_broadcast).
+
+--------------------------------------------------------------------------------
+TERMINAL 1 – FIRST GROUND STATION (GS1)
+--------------------------------------------------------------------------------
+This node will manage drones in its region (Kampala).
+
 > cd src
 > ./start_ground_station.sh gs1
 
-Erlang shell:
-*************
-% Compile all modules
-*>
+In the Erlang shell:
+
+% Compile modules
 c(node_communicator).
 c(drone).
 c(leader_election).
 c(ground_station).
-*>
- 
-% Start the first ground station
-> ground_station:start_link(gs1).
 
-***********************************
-Terminal 2 - Second Ground Station:
-***********************************
+% Start the ground station process
+ground_station:start_link(gs1).
+
+% After starting, we'll add neighbors later (once gs2 is up)
+% Check if the station is registered globally
+global:registered_names().
+
+--------------------------------------------------------------------------------
+TERMINAL 2 – SECOND GROUND STATION (GS2)
+--------------------------------------------------------------------------------
+This node manages drones in its region (Rome).
+
 > cd src
 > ./start_ground_station.sh gs2
 
-Erlang shell:
-*************
-*>
+In the Erlang shell:
+
+% Compile modules
 c(node_communicator).
 c(drone).
 c(leader_election).
 c(ground_station).
-*>
 
-% Start the second ground station
-> ground_station:start_link(gs2).
+% Start the ground station
+ground_station:start_link(gs2).
 
-> ground_station:add_neighbor(gs2, gs1).
+% Add gs1 as a neighbor (bidirectional communication)
+ground_station:add_neighbor(gs2, gs1).
 
-____________Back to Terminal 1_____________
+--------------------------------------------------------------------------------
+ESTABLISH NEIGHBOR RELATIONSHIP (BOTH DIRECTIONS)
+--------------------------------------------------------------------------------
+
+Go back to Terminal 1 and add gs2 as a neighbor:
 
 > ground_station:add_neighbor(gs1, gs2).
-> global:registered_names().
-> net_adm:ping('gs2@A06A'). % Troubleshooting: If gs2 not registered
-> net_adm:ping('port@A06A').
-> ground_station:start_election(gs1).
-> ground_station:get_leader(gs1).
-> whereis(gs1) ! leader_heartbeat. % Troubleshooting:Check if gs1 (leader) is sending leader heartbeats
 
-____________Back to Terminal 2_____________
+Now both stations know each other.
 
-> ground_station:get_leader(gs2).
+--------------------------------------------------------------------------------
+CONNECTIVITY AND LEADER ELECTION
+--------------------------------------------------------------------------------
 
-% Ensure All Nodes Are Connected
-+++++++++++++++++++++++++++++++++++++++++++
+On any terminal, ensure all nodes are visible:
 
-> global:whereis_name(drone_port_broadcast). | global:whereis_name(gs1). | global:whereis_name(gs2).
-> nodes().
-> global:registered_names().
+% List connected nodes – should show gs1@A06A, gs2@A06A, port@A06A
+nodes().
 
-> global:sync().% Force global name synchronization if neccessary
-+++++++++++++++++++++++++++++++++++++++++++
+% If a node is missing, ping it manually:
+net_adm:ping('gs2@A06A').   % or gs1@A06A, port@A06A
 
-***********************************
-Terminal 4 - Run Application:
-***********************************
+% Force global name synchronization (if names not propagated)
+global:sync().
+
+% Check that all three are registered globally:
+global:registered_names().
+% Expected: [gs1, gs2, drone_port_broadcast]
+
+% Verify that each station can find the others:
+global:whereis_name(gs1).
+global:whereis_name(gs2).
+global:whereis_name(drone_port_broadcast).
+
+% Start leader election from any station (e.g., gs1)
+ground_station:start_election(gs1).
+
+% Check who became leader (should be gs1)
+ground_station:get_leader(gs1).
+ground_station:get_leader(gs2).   % Should return gs1 as well.
+
+% If leader heartbeats are not being sent, manually trigger them:
+whereis(gs1) ! leader_heartbeat.   % This kicks off the periodic heartbeats.
+
+================================================================================
+3. START THE PYTHON FRONTEND
+================================================================================
+
+--------------------------------------------------------------------------------
+TERMINAL 4 – WEB INTERFACE
+--------------------------------------------------------------------------------
+
 > cd python_frontend
 > python3 main.py
 
-% Launch some gs1 drones
-*>
+Wait for the output:
+  🟢 Connected to Erlang
+  🌐 Web server started at http://localhost:5000
+
+Open a browser and go to http://localhost:5000
+
+================================================================================
+4. LAUNCH AND CONTROL DRONES
+================================================================================
+
+You can now control drones from either the Erlang shell or the web interface.
+
+--------------------------------------------------------------------------------
+CREATE DRONES ON GS1 (KAMPALA)
+--------------------------------------------------------------------------------
+
+% Launch drones (IDs 1-199 are assigned to Kampala)
 ground_station:launch_drone(gs1, 101).
 ground_station:launch_drone(gs1, 102).
 ground_station:launch_drone(gs1, 103).
 ground_station:launch_drone(gs1, 104).
 ground_station:launch_drone(gs1, 105).
-*>
 
-% Set gs1 drone waypoints (starting from gs1 center at (0,0))
-*>
-ground_station:set_drone_waypoint(gs1, 101, {50, 0}).
-ground_station:set_drone_waypoint(gs1, 102, {115, 0}).
-ground_station:set_drone_waypoint(gs1, 103, {60, 60}).
-ground_station:set_drone_waypoint(gs1, 104, {0, 95}).
-ground_station:set_drone_waypoint(gs1, 105, {70, 70}).
-*>
+% Set waypoints for each drone (starting from gs1 center at (0,0))
+ground_station:set_drone_waypoint(gs1, 101, {50, 0}).    % inside gs1 region
+ground_station:set_drone_waypoint(gs1, 102, {115, 0}).   % outside gs1 → handoff to gs2
+ground_station:set_drone_waypoint(gs1, 103, {60, 60}).   % inside both regions (overlap)
+ground_station:set_drone_waypoint(gs1, 104, {0, 95}).    % near boundary (just inside)
+ground_station:set_drone_waypoint(gs1, 105, {70, 70}).   % inside gs2 region → handoff
 
-> gen_server:call(gs1, get_status).
+% Check status of gs1
+gen_server:call(gs1, get_status).
 
-% Launch some gs2 drones
-*>
+--------------------------------------------------------------------------------
+CREATE DRONES ON GS2 (ROME)
+--------------------------------------------------------------------------------
+
+% Launch drones (IDs 200+ are assigned to Rome)
 ground_station:launch_drone(gs2, 201).
 ground_station:launch_drone(gs2, 202).
 ground_station:launch_drone(gs2, 203).
 ground_station:launch_drone(gs2, 204).
 ground_station:launch_drone(gs2, 205).
-*>
 
-% Set gs2 drone waypoints (starting from gs2 center at (100,100))
-*>
-ground_station:set_drone_waypoint(gs2, 201, {100, 50}).
-ground_station:set_drone_waypoint(gs2, 202, {205, 205}).
-ground_station:set_drone_waypoint(gs2, 203, {50, 50}).
-ground_station:set_drone_waypoint(gs2, 204, {205, 0}).
-ground_station:set_drone_waypoint(gs2, 205, {50, 150}).
-*>
+% Set waypoints (starting from gs2 center at (100,100))
+ground_station:set_drone_waypoint(gs2, 201, {100, 50}).   % inside gs2 region
+ground_station:set_drone_waypoint(gs2, 202, {205, 205}).  % far outside → handoff to gs1
+ground_station:set_drone_waypoint(gs2, 203, {50, 50}).    % inside gs1 region → handoff
+ground_station:set_drone_waypoint(gs2, 204, {205, 0}).    % outside both → handoff
+ground_station:set_drone_waypoint(gs2, 205, {50, 150}).   % inside gs2 region (y=150)
 
-> gen_server:call(gs2, get_status).
-> drone:get_position(101).   % Should still be near the waypoint
+% Check status of gs2
+gen_server:call(gs2, get_status).
 
-------------------------------------------------------------
-% Manually transfer a drone
-(gs1@A06A)xx> whereis(drone_101).
-(gs1@A06A)xx> ground_station:transfer_drone(gs1, 101, gs2).
--------------------------------------------------------------
-% Check for node information
-(gs1@A06A)xx> node_communicator:node_info().
--------------------------------------------------------------
+--------------------------------------------------------------------------------
+VERIFY DRONE POSITIONS
+--------------------------------------------------------------------------------
 
->>> Toubleshooting <<<
+% Get the position of a specific drone
+drone:get_position(101).   % Should be near its waypoint (if battery allowed)
 
-> global:whereis_name(gs1).  % For Cross-Node Process Lookups:
-> nodes(). % List of connected nodes
-> net_adm:ping('gs1@A06A'). % Check for inter-node communication between ground stations
-> global:whereis_name(gs1). % Look up node
-> whereis(gs1) ! leader_heartbeat. % Check if gs1 (leader) is sending leader heartbeats
-> gen_server:call(gs1, get_status). % Status check for ground station node
-> drone:get_position(203). % Verify initial drone position:
+% If a drone was handed off, it will appear in the other station's list
+gen_server:call(gs2, get_status).   % Should show drone 102, 103, etc.
+
+================================================================================
+5. MANUAL DRONE TRANSFER (TESTING HANDOFF)
+================================================================================
+
+You can manually transfer a drone from one station to another.
+
+% Find the PID of the drone (optional)
+whereis(drone_101).
+
+% Transfer it to the other station
+ground_station:transfer_drone(gs1, 101, gs2).
+
+% Verify that the drone now belongs to gs2
+gen_server:call(gs2, get_status).
+
+================================================================================
+6. MONITORING AND TROUBLESHOOTING
+================================================================================
+
+--------------------------------------------------------------------------------
+CHECK NODE COMMUNICATION
+--------------------------------------------------------------------------------
+
+% See which nodes are connected
+nodes().
+
+% View all globally registered names
+global:registered_names().
+
+% Look up a global name
+global:whereis_name(gs1).   % Returns PID (with node prefix if remote)
+
+% Display detailed node information (including registered processes)
+node_communicator:node_info().
+
+--------------------------------------------------------------------------------
+LEADER ELECTION HEALTH
+--------------------------------------------------------------------------------
+
+% Check leader on each station
+ground_station:get_leader(gs1).
+ground_station:get_leader(gs2).
+
+% If no leader, start an election
+ground_station:start_election(gs1).
+
+% If leader heartbeats are not being sent, manually trigger them
+whereis(gs1) ! leader_heartbeat.
+
+--------------------------------------------------------------------------------
+NETWORK CONNECTIVITY
+--------------------------------------------------------------------------------
+
+% Ping a remote node to test connectivity
+net_adm:ping('gs1@A06A').   % Should return 'pong'
+net_adm:ping('gs2@A06A').
+net_adm:ping('port@A06A').
+
+% If pong fails, check that the cookie is the same (default: drone_cookie)
+erlang:get_cookie().
+
+--------------------------------------------------------------------------------
+DRONE PROCESS CHECK
+--------------------------------------------------------------------------------
+
+% Check if a drone process is alive
+whereis(drone_101).   % Returns PID if running, undefined otherwise
+
+% Get its status
+drone:get_status(101).
+
+% If a drone is stuck, you can manually kill it (not recommended unless necessary)
+exit(whereis(drone_101), kill).
+
+--------------------------------------------------------------------------------
+GROUND STATION CRASH RECOVERY
+--------------------------------------------------------------------------------
+
+If a ground station crashes, you can restart it:
+
+% Kill the old process (if it still exists)
+exit(whereis(gs1), kill).
+
+% Start a fresh one
+ground_station:start_link(gs1).
+
+% Re‑add neighbors
+ground_station:add_neighbor(gs1, gs2).
+
+% If you are the leader, you may need to re‑elect
+ground_station:start_election(gs1).
+
+--------------------------------------------------------------------------------
+PORT PROGRAM TROUBLESHOOTING
+--------------------------------------------------------------------------------
+
+If the Python frontend does not receive telemetry:
+
+% Check that the port is registered globally
+global:whereis_name(drone_port_broadcast).
+
+% If undefined, restart the port
+exit(whereis(drone_port_broadcast), kill).
+drone_port_broadcast:start_link().
+global:re_register_name(drone_port_broadcast, whereis(drone_port_broadcast)).
+
+% Check that ground stations are forwarding telemetry:
+% In gs1 terminal, you should see: "Attempting to forward drone X to port (PID: ...)"
+
+% In port terminal, you should see broadcast lines: "Broadcasting: ..."
+
+================================================================================
+7. STOPPING THE SYSTEM
+================================================================================
+
+To shut down gracefully:
+
+% Stop the Python frontend: Ctrl+C in Terminal 4
+
+% In each Erlang shell, exit with:
+q().
+
+% Or if you want to kill everything quickly:
+init:stop().
+
+================================================================================
+END OF GUIDE
+================================================================================
