@@ -1,6 +1,7 @@
-> cd ./"Distributed Drone System"/erlang/src
-> cd ./"Distributed Drone System"/python_frontend
+> cd ./"Distributed-Drone-Coordination-System"/erlang/src
+> cd ./"Distributed-Drone-Coordination-System"/python_frontend
 
+% Create split terminals to run the independent nodes
 **********************************
 Terminal 0 - Drone Port:
 **********************************
@@ -74,15 +75,14 @@ ____________Back to Terminal 2_____________
 
 > ground_station:get_leader(gs2).
 
-
 % Ensure All Nodes Are Connected
 +++++++++++++++++++++++++++++++++++++++++++
 
 > global:whereis_name(drone_port_broadcast). | global:whereis_name(gs1). | global:whereis_name(gs2).
 > nodes().
-> global:sync().% Force global name synchronization
 > global:registered_names().
 
+> global:sync().% Force global name synchronization if neccessary
 +++++++++++++++++++++++++++++++++++++++++++
 
 ***********************************
@@ -130,7 +130,7 @@ ground_station:set_drone_waypoint(gs2, 205, {50, 150}).
 *>
 
 > gen_server:call(gs2, get_status).
-> drone:get_position(101).   % should still be near the waypoint
+> drone:get_position(101).   % Should still be near the waypoint
 
 ------------------------------------------------------------
 % Manually transfer a drone
@@ -141,14 +141,14 @@ ground_station:set_drone_waypoint(gs2, 205, {50, 150}).
 (gs1@A06A)xx> node_communicator:node_info().
 -------------------------------------------------------------
 
-Toubleshooting:
+>>> Toubleshooting <<<
 
 > global:whereis_name(gs1).  % For Cross-Node Process Lookups:
-> nodes().
-> net_adm:ping('gs1@A06A').
-> global:whereis_name(gs1).
+> nodes(). % List of connected nodes
+> net_adm:ping('gs1@A06A'). % Check for inter-node communication between ground stations
+> global:whereis_name(gs1). % Look up node
 > whereis(gs1) ! leader_heartbeat. % Check if gs1 (leader) is sending leader heartbeats
-> gen_server:call(gs1, get_status).
+> gen_server:call(gs1, get_status). % Status check for ground station node
 > drone:get_position(203). % Verify initial drone position:
 
 % Inspect the neighbor list of a ground station
