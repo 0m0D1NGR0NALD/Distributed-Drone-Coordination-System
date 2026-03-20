@@ -1,0 +1,162 @@
+> cd ./"Distributed Drone System"/erlang/src
+> cd ./"Distributed Drone System"/python_frontend
+
+**********************************
+Terminal 0 - Drone Port:
+**********************************
+> cd src
+> ./start_ground_station.sh port
+
+Erlang shell:
+*************
+% Compile all modules
+*>
+c(node_communicator).
+c(drone).
+c(leader_election).
+c(ground_station).
+c(drone_port_broadcast).
+*>   
+
+> drone_port_broadcast:start_link().
+> global:re_register_name(drone_port_broadcast, whereis(drone_port_broadcast)).
+
+**********************************
+Terminal 1 - First Ground Station:
+**********************************
+> cd src
+> ./start_ground_station.sh gs1
+
+Erlang shell:
+*************
+% Compile all modules
+*>
+c(node_communicator).
+c(drone).
+c(leader_election).
+c(ground_station).
+*>
+ 
+% Start the first ground station
+> ground_station:start_link(gs1).
+
+***********************************
+Terminal 2 - Second Ground Station:
+***********************************
+> cd src
+> ./start_ground_station.sh gs2
+
+Erlang shell:
+*************
+*>
+c(node_communicator).
+c(drone).
+c(leader_election).
+c(ground_station).
+*>
+
+% Start the second ground station
+> ground_station:start_link(gs2).
+
+> ground_station:add_neighbor(gs2, gs1).
+
+____________Back to Terminal 1_____________
+
+> ground_station:add_neighbor(gs1, gs2).
+> global:registered_names().
+> net_adm:ping('gs2@A06A'). % Troubleshooting: If gs2 not registered
+> net_adm:ping('port@A06A').
+> ground_station:start_election(gs1).
+> ground_station:get_leader(gs1).
+> whereis(gs1) ! leader_heartbeat. % Troubleshooting:Check if gs1 (leader) is sending leader heartbeats
+
+____________Back to Terminal 2_____________
+
+> ground_station:get_leader(gs2).
+
+
+% Ensure All Nodes Are Connected
++++++++++++++++++++++++++++++++++++++++++++
+
+> global:whereis_name(drone_port_broadcast). | global:whereis_name(gs1). | global:whereis_name(gs2).
+> nodes().
+> global:sync().% Force global name synchronization
+> global:registered_names().
+
++++++++++++++++++++++++++++++++++++++++++++
+
+***********************************
+Terminal 4 - Run Application:
+***********************************
+> cd python_frontend
+> python3 main.py
+
+% Launch some gs1 drones
+*>
+ground_station:launch_drone(gs1, 101).
+ground_station:launch_drone(gs1, 102).
+ground_station:launch_drone(gs1, 103).
+ground_station:launch_drone(gs1, 104).
+ground_station:launch_drone(gs1, 105).
+*>
+
+% Set gs1 drone waypoints (starting from gs1 center at (0,0))
+*>
+ground_station:set_drone_waypoint(gs1, 101, {50, 0}).
+ground_station:set_drone_waypoint(gs1, 102, {115, 0}).
+ground_station:set_drone_waypoint(gs1, 103, {60, 60}).
+ground_station:set_drone_waypoint(gs1, 104, {0, 95}).
+ground_station:set_drone_waypoint(gs1, 105, {70, 70}).
+*>
+
+> gen_server:call(gs1, get_status).
+
+% Launch some gs2 drones
+*>
+ground_station:launch_drone(gs2, 201).
+ground_station:launch_drone(gs2, 202).
+ground_station:launch_drone(gs2, 203).
+ground_station:launch_drone(gs2, 204).
+ground_station:launch_drone(gs2, 205).
+*>
+
+% Set gs2 drone waypoints (starting from gs2 center at (100,100))
+*>
+ground_station:set_drone_waypoint(gs2, 201, {100, 50}).
+ground_station:set_drone_waypoint(gs2, 202, {205, 205}).
+ground_station:set_drone_waypoint(gs2, 203, {50, 50}).
+ground_station:set_drone_waypoint(gs2, 204, {205, 0}).
+ground_station:set_drone_waypoint(gs2, 205, {50, 150}).
+*>
+
+> gen_server:call(gs2, get_status).
+> drone:get_position(101).   % should still be near the waypoint
+
+------------------------------------------------------------
+% Manually transfer a drone
+(gs1@A06A)xx> whereis(drone_101).
+(gs1@A06A)xx> ground_station:transfer_drone(gs1, 101, gs2).
+-------------------------------------------------------------
+% Check for node information
+(gs1@A06A)xx> node_communicator:node_info().
+-------------------------------------------------------------
+
+Toubleshooting:
+
+> global:whereis_name(gs1).  % For Cross-Node Process Lookups:
+> nodes().
+> net_adm:ping('gs1@A06A').
+> global:whereis_name(gs1).
+> whereis(gs1) ! leader_heartbeat. % Check if gs1 (leader) is sending leader heartbeats
+> gen_server:call(gs1, get_status).
+> drone:get_position(203). % Verify initial drone position:
+
+% Inspect the neighbor list of a ground station
+> rr("drone_types.hrl").
+> State = sys:get_state(gs1).
+> State#ground_station_state.neighbors.
+
+************************************************
+************************************************
+************************************************
+************************************************
