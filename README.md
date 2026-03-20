@@ -8,7 +8,7 @@ The Distributed Drone Coordination System simulates multiple ground stations tha
 
 * Fault Tolerance: Automatic recovery from node failures
 
-* Leader Election: Democratic selection of cluster coordinators
+* Leader Election: Selection of cluster coordinator using bully algorithm
 
 * Dynamic Handoff: Seamless transfer of drones between stations
 
