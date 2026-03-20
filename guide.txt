@@ -150,13 +150,3 @@ ground_station:set_drone_waypoint(gs2, 205, {50, 150}).
 > whereis(gs1) ! leader_heartbeat. % Check if gs1 (leader) is sending leader heartbeats
 > gen_server:call(gs1, get_status). % Status check for ground station node
 > drone:get_position(203). % Verify initial drone position:
-
-% Inspect the neighbor list of a ground station
-> rr("drone_types.hrl").
-> State = sys:get_state(gs1).
-> State#ground_station_state.neighbors.
-
-************************************************
-************************************************
-************************************************
-************************************************
