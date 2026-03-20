@@ -32,4 +32,5 @@ The Distributed Drone Coordination System simulates multiple ground stations tha
 * Click-to-command waypoint setting
  Ground station status panels
 
-
+### Usage
+Follow the instructions in 'guide.txt'
