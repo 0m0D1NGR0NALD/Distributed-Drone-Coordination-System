@@ -29,7 +29,7 @@ The Distributed Drone Coordination System simulates multiple ground stations tha
   
 ### Interactive Frontend
 * Live map with drone positions and trails
-* Click-to-command waypoint setting
+* Click to command waypoint setting
  Ground station status panels
 
 ### Usage
