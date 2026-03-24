@@ -1,15 +1,10 @@
 # Distributed-Drone-Coordination-System
 The Distributed Drone Coordination System simulates multiple ground stations that manage drone fleets in a geographical area. The system demonstrates core distributed systems concepts including fault tolerance, leader election, and inter-node communication through an accessible drone coordination domain.
 
-
 ## Core Concepts
-
 * Actor Model: Drones and ground stations as independent concurrent entities
-
 * Fault Tolerance: Automatic recovery from node failures
-
-* Leader Election: Selection of cluster coordinator using bully algorithm
-
+* Leader Election: Selection of ground station cluster coordinator using bully algorithm
 * Dynamic Handoff: Seamless transfer of drones between stations
 
 ## System Architecture
@@ -23,14 +18,14 @@ The Distributed Drone Coordination System simulates multiple ground stations tha
   
 ### Drone Management
 * Launch drones from any ground station
-* Set waypoints via map interface
-* Automatic handoff when crossing regional boundaries
-* Real-time telemetry (position, battery, status)
+* Set waypoints via interactive map interface
+* Automatic drone handoff when crossing regional boundaries
+* Real-time drone telemetry
   
 ### Interactive Frontend
 * Live map with drone positions and trails
 * Click to command waypoint setting
- Ground station status panels
+* Ground station status panels
 
 ### Usage
-* Please follow the instructions in *guide.txt*.
+* Please follow the instructions in *guide.txt* to demonstrate system operation.
