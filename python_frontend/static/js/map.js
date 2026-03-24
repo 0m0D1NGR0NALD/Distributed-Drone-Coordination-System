@@ -1,14 +1,12 @@
 // python_frontend/static/js/map.js
-// Version with yellow station dots, no boundary label in legend
-
 console.log("map.js loaded");
 
-// ---------- Coordinate transformation ----------
+// Coordinate transformation
 function toGeo(ix, iy) {
     const baseLat = 0.3476;      // Kampala latitude
     const baseLon = 32.5825;     // Kampala longitude
-    const scaleLat = 0.4155;      // (41.9028 - 0.3476) / 100
-    const scaleLon = -0.2008;     // (12.4964 - 32.5825) / 100
+    const scaleLat = 0.4155;     // (41.9028 - 0.3476) / 100
+    const scaleLon = -0.2008;    // (12.4964 - 32.5825) / 100
     return {
         lat: baseLat + iy * scaleLat,
         lon: baseLon + ix * scaleLon
@@ -26,7 +24,7 @@ function fromGeo(lat, lon) {
     };
 }
 
-// ---------- Map setup ----------
+// Map setup
 const mapElement = document.getElementById('map');
 if (!mapElement) console.error("🔴 Map element not found");
 else console.log("🟢 Map container found");
@@ -36,7 +34,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
 }).addTo(map);
 
-// ---------- Socket.IO ----------
+// Socket.IO
 const socket = io({ transports: ['polling'] });
 
 socket.on('connect', () => {
@@ -48,7 +46,7 @@ socket.on('disconnect', () => {
     document.getElementById('connection-status').textContent = 'Disconnected';
 });
 
-// ---------- Station markers (uniform yellow dots) ----------
+// Station markers (yellow dots)
 const stationStyle = {
     radius: 6,
     fillColor: '#ffc107',   // yellow
@@ -70,21 +68,21 @@ const romeMarker = L.circleMarker([romeGeo.lat, romeGeo.lon], stationStyle)
     .addTo(map);
 romeMarker.bindPopup('Rome');
 
-// ---------- Region circles (colored by station) ----------
-const handoffRadius = 90 * 35.36 * 1000; // 90 internal units → meters
+// Region circles (colored by station)
+const handoffRadius = 90 * 35.36 * 1000; // convert 90 internal units → meters
 
-// Kampala region – red
+// Kampala region (red)
 L.circle([kampalaGeo.lat, kampalaGeo.lon], {
-    color: '#e94560',
+    color: '#e94560',   // red
     weight: 2,
     opacity: 0.6,
     fillOpacity: 0.1,
     radius: handoffRadius
 }).addTo(map);
 
-// Rome region – blue
+// Rome region (blue)
 L.circle([romeGeo.lat, romeGeo.lon], {
-    color: '#0f3460',
+    color: '#0f3460',   // blue
     weight: 2,
     opacity: 0.6,
     fillOpacity: 0.1,
@@ -97,7 +95,7 @@ map.fitBounds(L.latLngBounds([
     [romeGeo.lat, romeGeo.lon]
 ]), { padding: [50, 50] });
 
-// ---------- Drone markers storage ----------
+// Drone markers storage
 const drones = {};
 const trails = {};
 
@@ -212,7 +210,7 @@ function updateTrails(history) {
     });
 }
 
-// ---------- Click-to-set-waypoint ----------
+// Click to set waypoint
 map.on('click', (e) => {
     const coords = e.latlng;
     document.getElementById('click-coords').innerHTML = `Selected: (${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)})`;
@@ -231,7 +229,7 @@ map.on('click', (e) => {
     }
 });
 
-// ---------- Command functions ----------
+// Command functions
 function launchDrone() {
     const station = document.getElementById('station-select').value;
     const droneId = document.getElementById('drone-id').value;
