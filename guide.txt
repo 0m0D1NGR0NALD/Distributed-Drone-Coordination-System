@@ -5,6 +5,11 @@
 This guide walks you through launching the complete system, from starting the
 Erlang nodes to running the Python frontend and interacting with drones.
 
+⚠️ Environment Requirement:
+- Windows users must run all commands inside WSL (Windows Subsystem for Linux).
+- macOS users should run commands in a Unix-based terminal (e.g., Terminal or iTerm).
+- Linux users can use any standard shell.
+
 ================================================================================
 1. INITIAL SETUP
 ================================================================================
