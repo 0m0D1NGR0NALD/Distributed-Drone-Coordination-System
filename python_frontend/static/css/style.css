@@ -239,7 +239,7 @@ body {
     color: #e94560;
 }
 
-/* ========== MAP LEGEND ========== */
+/* Map Legend */
 .map-legend {
     position: absolute;
     bottom: 20px;
@@ -277,13 +277,13 @@ body {
     margin-right: 8px;
 }
 
-/* Note: Actual colors are set inline in HTML to match Kampala (red) and Rome (blue) */
+/* Setting drone colors to match Kampala (red) and Rome (blue) */
 .legend-color.drone { background: #e94560; }        /* Kampala drones */
 .legend-color.trail { background: #4caf50; }        /* Drone trails */
 .legend-color.boundary { background: #ff9800; }     /* Handoff boundary */
 .legend-color.station { background: #0f3460; }      /* Rome station (blue) */
 
-/* ========== LEAFLET OVERRIDES ========== */
+/* Leaflet Overrides */
 .leaflet-tooltip {
     background: #0f3460;
     border: 1px solid #e94560;
@@ -324,7 +324,7 @@ body {
     border: 1px solid #e94560;
 }
 
-/* ========== RESPONSIVE DESIGN ========== */
+/* Responsive Design */
 @media (max-width: 768px) {
     .container {
         flex-direction: column;
@@ -350,7 +350,7 @@ body {
     }
 }
 
-/* ========== UTILITIES ========== */
+/* Utilities */
 .loading {
     position: absolute;
     top: 50%;
