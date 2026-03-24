@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# python_frontend/simple_erlang_connector.py
+# python_frontend/erlang_connector.py
 """
 Simple socket-based Erlang connector
 No external dependencies beyond standard library
